@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music player</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+    integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+    crossorigin="anonymous" />
+  <link rel="stylesheet" href="./main.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="player">
+    <!-- Dashboard -->
+    <div class="dashboard">
+      <!-- Header -->
+      <header>
+        <h4>Now playing:</h4>
+        <h2>String 57th & 9th</h2>
+      </header>
+
+      <!-- CD -->
+      <div class="cd">
+        <div class="cd-thumb" style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')">
+        </div>
+      </div>
+
+      <!-- Control -->
+      <div class="control">
+        <div class="btn btn-repeat">
+          <i class="fas fa-redo"></i>
+        </div>
+        <div class="btn btn-prev">
+          <i class="fas fa-step-backward"></i>
+        </div>
+        <div class="btn btn-toggle-play">
+          <i class="fas fa-pause icon-pause"></i>
+          <i class="fas fa-play icon-play"></i>
+        </div>
+        <div class="btn btn-next">
+          <i class="fas fa-step-forward"></i>
+        </div>
+        <div class="btn btn-random">
+          <i class="fas fa-random"></i>
+        </div>
+      </div>
+
+      <input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
+
+      <audio id="audio" src=""></audio>
+    </div>
+
+    <!-- Playlist -->
+    <div class="playlist">
+
+    </div>
+  </div>
+
+  <script>
+    const $ = document.querySelector.bind(document)
+    const $$ = document.querySelectorAll.bind(document)
+    const heading = $('header h2')
+    const cdThumb = $('.cd-thumb')
+    const player = $('.player')
+    const playBtn = $('.btn-toggle-play')
+    const audio = $('#audio')
+    const cd = $('.cd')
+    const progress = $('#progress')
+    const playlist = $('.playlist')
+    const next = $('.btn-next')
+    const prev = $('.btn-prev')
+    const repeat = $('.btn-repeat')
+    const random = $('.btn-random')
+
+    const app = {
+      isPlaying: false,
+      currentIndex: 1,
+      songs: [
+        {
+          img: 'https://i.ytimg.com/vi/RcNy4NrBltg/maxresdefault.jpg',
+          name: 'Một thuở thanh bình',
+          singer: 'Tea - Tuyết - VoVanDuc',
+          path: './assets/1thuothanhbinh.mp3'
+        },
+        {
+          img: 'https://avatar-ex-swe.nixcdn.com/song/2022/03/28/0/b/2/4/1648434956559_640.jpg',
+          name: 'Em không khóc',
+          singer: 'buitruonglinh - vuphungtien',
+          path: './assets/emkokhoc.mp3'
+        },
+        {
+          img: 'data:image/jpeg;base64,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',
+          name: 'Glimpse of Us',
+          singer: 'Joji',
+          path: './assets/glimpseofus.mp3'
+        },
+        {
+          img: 'https://3.bp.blogspot.com/-0dWggWgxd20/WFB0eAqZlkI/AAAAAAAAN5U/H_88mGzHZ8cfFxO4lgGd8yDntNfTQQqPgCLcB/s640/Head-In-The-Clouds.jpg',
+          name: 'Head in the clouds',
+          singer: 'Hayd',
+          path: './assets/headinthecloud.mp3'
+        },
+      ],
+      start: function () {
+        this.handleEvent()
+        this.defineProperties()
+        this.loadCurrentSong()
+        this.render()
+      },
+
+      loadCurrentSong: function () {
+        heading.textContent = this.currentSong.name
+        cdThumb.style.backgroundImage = `url('${this.currentSong.img}')`
+        audio.src = this.currentSong.path
+      },
+
+      handleEvent: function () {
+        const cdWidth = cd.offsetWidth
+        const cdThumbAnimate = cdThumb.animate([
+          {
+            transform: 'rotate(360deg)'
+          }
+        ], {
+          duration: 10000,
+          iterations: Infinity
+        })
+        cdThumbAnimate.pause()
+        document.onscroll = function () {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop
+          const newCdWidth = cdWidth - scrollTop
+
+          if (newCdWidth > 0) {
+            cd.style.width = newCdWidth + 'px'
+          } else {
+            cd.style.width = 0
+          }
+        }
+        playBtn.onclick = function () {
+          if (app.isPlaying) {
+            audio.pause()
+          } else {
+            audio.play()
+          }
+        }
+        audio.onpause = function () {
+          app.isPlaying = false
+          cdThumbAnimate.pause()
+          player.classList.remove('playing')
+        }
+        audio.onplay = function () {
+          app.isPlaying = true
+          cdThumbAnimate.play()
+          player.classList.add('playing')
+        }
+        audio.ontimeupdate = function () {
+          if (audio.duration) {
+            const progressPercent = Math.floor(audio.currentTime / audio.duration * 100)
+            progress.value = progressPercent
+          }
+        }
+        progress.onchange = function (e) {
+          const seekTime = audio.duration * e.target.value / 100
+          audio.currentTime = seekTime
+        }
+        next.onclick = function() {
+          app.nextSong()
+          audio.play()
+        }
+        prev.onclick = function() {
+          app.prevSong()
+          audio.play()
+        }
+      },
+      
+      prevSong: function() {
+        this.currentIndex--
+        if (this.currentIndex < 0) {
+          this.currentIndex = this.songs.length - 1
+        }
+        this.loadCurrentSong()
+      },
+
+      nextSong: function() {
+        this.currentIndex++
+        if (this.currentIndex >= this.songs.length) {
+          this.currentIndex = 0
+        }
+        this.loadCurrentSong()
+      },
+
+      defineProperties: function () {
+        Object.defineProperty(this, 'currentSong', {
+          get: function () {
+            return this.songs[this.currentIndex]
+          }
+        })
+      },
+
+      render: function () {
+        const html = this.songs.map(song => {
+          return `<div class="song">
+            <div class="thumb" style="background-image: url('${song.img}')">
+            </div>
+            <div class="body">
+              <h3 class="title">${song.name}</h3>
+              <p class="author">${song.singer}</p>
+            </div>
+            <div class="option">
+              <i class="fas fa-ellipsis-h"></i>
+            </div>
+          </div>
+          `
+        })
+        $('.playlist').innerHTML = html.join('')
+      }
+    }
+
+    app.start()
+  </script>
+</body>
+
+</html>
