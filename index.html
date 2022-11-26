@@ -76,7 +76,9 @@
     const random = $('.btn-random')
 
     const app = {
+      isRandom: false,
       isPlaying: false,
+      isRepeat: false,
       currentIndex: 1,
       songs: [
         {
@@ -161,21 +163,55 @@
             progress.value = progressPercent
           }
         }
+        audio.onended = function() {
+          next.click()
+        }
+        repeat.onclick = function() {
+          if (app.isRandom) {
+            alert('Đang random không repeat được bạn ei')
+          } else {
+            app.isRepeat = !app.isRepeat
+            repeat.classList.toggle('active')
+          }
+        }
         progress.onchange = function (e) {
           const seekTime = audio.duration * e.target.value / 100
           audio.currentTime = seekTime
         }
-        next.onclick = function() {
-          app.nextSong()
+        next.onclick = function () {
+          if (app.isRandom) {
+            app.playRandomSong()
+          } else if (app.isRepeat) {
+            audio.play()
+          } else {
+            app.nextSong()
+          }
           audio.play()
         }
-        prev.onclick = function() {
-          app.prevSong()
+        prev.onclick = function () {
+          if (app.isRandom) {
+            app.playRandomSong()
+          } else {
+            app.prevSong()
+          }
           audio.play()
+        }
+        random.onclick = function (e) {
+          app.isRandom = !app.isRandom
+          random.classList.toggle('active')
         }
       },
-      
-      prevSong: function() {
+
+      playRandomSong: function () {
+        let newIndex
+        do {
+          newIndex = Math.floor(Math.random() * this.songs.length)
+        } while (newIndex == app.currentIndex)
+        app.currentIndex = newIndex
+        this.loadCurrentSong()
+      },
+
+      prevSong: function () {
         this.currentIndex--
         if (this.currentIndex < 0) {
           this.currentIndex = this.songs.length - 1
@@ -183,7 +219,7 @@
         this.loadCurrentSong()
       },
 
-      nextSong: function() {
+      nextSong: function () {
         this.currentIndex++
         if (this.currentIndex >= this.songs.length) {
           this.currentIndex = 0
